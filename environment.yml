@@ -1,0 +1,24 @@
+# Software environment that produced the questionnaire answers.
+#   conda env create -f environment.yml
+#   conda activate con2phys
+# Packages come from PyPI at the exact versions used (elephant 1.2.1 and
+# ripple_detection are not on conda-forge).
+name: con2phys
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - numpy==2.4.6
+      - scipy==1.17.1
+      - pandas==3.0.6          # required by ripple_detection
+      - matplotlib==3.11.2
+      - openpyxl==3.1.5        # trial tables (.xlsx)
+      - pyyaml==6.0.3          # config.yaml
+      - neo==0.14.5
+      - elephant==1.2.1
+      - quantities==0.16.4
+      - scikit-learn==1.9.1
+      - networkx==3.6.1
+      - ripple_detection==1.7.1  # Kay, Karlsson and Roumis ripple detectors (Q3)

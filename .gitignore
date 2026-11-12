@@ -1,0 +1,17 @@
+# Only the code needed to reproduce the questionnaire answers is published.
+# Everything else in this folder (data, outputs, notes, exploratory and
+# cluster-specific scripts) stays local.
+/*
+!/.gitignore
+!/README.md
+!/environment.yml
+!/config.yaml
+!/reproduce.sh
+!/con2phys/
+!/questions/
+
+# Python and macOS clutter inside the published folders
+__pycache__/
+*.pyc
+._*
+.DS_Store

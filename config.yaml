@@ -1,0 +1,118 @@
+# Single source of truth for every parameter of the CON²PHYS answers.
+# One section per answered question (q01 … q15); see README.md.
+
+# ---------------------------------------------------------------- data
+data_root: data
+excluded_mice: []            # all 18 animals are included
+lfp_sampling_rate_hz: 500.0
+areas: [1, 2, 3]
+
+# ---------------------------------------------------------------- statistics (all questions)
+bootstrap_replicates: 10000  # percentile bootstrap over mice
+confidence_level: 0.95
+random_seed: 0               # condition i uses seed + i
+significance_level: 0.05     # Friedman, then Holm-corrected paired Wilcoxon
+
+# Welch PSD shared by Q2 and the Q8 channel selection (Hann, constant detrend, mean).
+welch:
+  window_s: 4.0
+  overlap_fraction: 0.5
+
+# Example animal for the step-by-step figures in outputs/<question>/figures/.
+example_mouse: 1
+dpi: 120
+
+# ---------------------------------------------------------------- questions
+# Scripts in questions/ that make up the full solution, in run order.
+questions: [q01_firing_rate, q02_lfp_power, q03_ripples, q04_spike_correlation,
+            q05_undirected_fc, q06_granger, q08_theta_locking, q11_information,
+            q12_decoding, q13_dimensionality, q15_entropy]
+
+q01:
+  # Q1 lowest firing rate: mean unit rate over the whole recording.
+  output_dir: outputs/q01_firing_rate
+
+q02:
+  # Q2 highest broadband LFP power: mean over channels of the 1–100 Hz Welch power.
+  frequency_band_hz: [1.0, 100.0]
+  output_dir: outputs/q02_lfp_power
+
+q03:
+  # Q3 ripple density: consensus of three detectors, minus events shared by all areas.
+  detector_band_hz: [150.0, 240.0]
+  waveform_band_hz: [50.0, 240.0]
+  filter_order: 4
+  detector_match_tolerance_s: 0.020
+  waveform_half_window_s: 0.200
+  output_dir: outputs/q03_ripples
+
+q04:
+  # Q4 pairwise spike-train interactions at 100 ms: zero-lag Pearson r of 100 ms counts.
+  bin_s: 0.1
+  output_dir: outputs/q04_spike_correlation
+
+q05:
+  # Q5 undirected FC: mean |Pearson r| over all cross-area channel pairs of the raw LFP.
+  output_dir: outputs/q05_undirected_fc
+
+q06:
+  # Q6 directed FC: least-squares Granger causality between sign-aligned channel averages.
+  granger_order: 20          # fixed model order (40 ms); BIC always chose this ceiling
+  questionnaire_directions: [[1, 2], [3, 2], [3, 1]]
+  output_dir: outputs/q06_granger
+
+q08:
+  # Q8 theta phase locking: PPC0 on the theta-prominent channel during theta windows.
+  theta_band_hz: [4.0, 10.0]
+  delta_band_hz: [1.0, 4.0]
+  baseline_bands_hz: [[2.0, 4.0], [12.0, 30.0]]
+  window_s: 2.0
+  spectrum_band_hz: [1.0, 30.0]
+  filter_order: 3
+  gmm_n_init: 10
+  gmm_min_weight: 0.05
+  gmm_grid_points: 2000
+  ashman_d_min: 2.0
+  theta_fraction_flag: [0.05, 0.95]
+  example_min_spikes: 50
+  phase_histogram_bins: 18
+  snippet_s: 3.0
+  snippet_units: 6
+  output_dir: outputs/q08_theta_locking
+
+q11:
+  # Q11 information about A: excess Skaggs information on the in-trial clock.
+  bin_s: 0.01
+  n_shuffles: 1000
+  min_shift_s: 10.0
+  chunk_units: 16            # units per FFT batch (memory only)
+  output_dir: outputs/q11_information
+
+q12:
+  # Q12 decoding C per trial segment; segments are half-open [start_event, end_event).
+  segments:
+    pre_stimulus: [trial_start, stim_start]
+    stimulus: [stim_start, outcome]
+    post_outcome: [outcome, trial_end]
+  excluded_c_values: [1]     # C = 1 occurs in 0-13 trials per mouse
+  n_folds: 5
+  svm_c: 1.0
+  chance_level: 0.5
+  output_dir: outputs/q12_decoding
+
+q13:
+  # Q13 dimensionality: PCA of trial-averaged, time-normalised stim→outcome trajectories.
+  segment: [stim_start, outcome]
+  n_time_bins: 20
+  soft_norm_hz: 5.0
+  variance_threshold: 0.8
+  n_subsets: 500
+  curve_subset_sizes: [3, 5, 7, 10, 15, 20, 25, 30]
+  n_plotted_subsets: 50
+  output_dir: outputs/q13_dimensionality
+
+q15:
+  # Q15 complexity: Shannon entropy of 10 ms spike counts, stimulus → trial end.
+  segment: [stim_start, trial_end]
+  bin_s: 0.01
+  output_dir: outputs/q15_entropy
